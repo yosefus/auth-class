@@ -9,3 +9,8 @@
 h1{
   @apply text-orange-500 text-xl capitalize text-center font-semibold mb-4;
 }
+
+input{
+  @apply px-3 py-1 text-black focus:outline-orange-500;
+  font: inherit;
+}
