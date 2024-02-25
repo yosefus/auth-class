@@ -1,4 +1,6 @@
-import { NavLink, Route, Routes } from 'react-router-dom'
+import { NavLink, Route, Routes, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { useEffect } from 'react'
 
 function App() {
 
@@ -43,19 +45,30 @@ const HomePage = () => (<div className='p-12 h-full flex flex-col gap-4 items-ce
   <button className='px-8 py-2 rounded-md bg-orange-500'>create axios req</button>
 </div>)
 
-const AdminPage = () => (<div className='p-12 h-full flex flex-col gap-4 items-center'>
-  <h1>admin page</h1>
-  <img src="/2.jpg" alt="admin" />
-  <button className='px-8 py-2 rounded-md bg-orange-500'>create axios req</button>
-</div>)
+const AdminPage = () => {
+  const onClick = async() => {
+   apiReq({method: 'GET', url: 'protected' }).then(console.log)
+}
+  return (<div className='p-12 h-full flex flex-col gap-4 items-center'>
+    <h1>admin page</h1>
+    <img src="/2.jpg" alt="admin" />
+    <button className='px-8 py-2 rounded-md bg-orange-500' onClick={onClick}>create axios req</button>
+  </div>)
+}
 
 const LoginPage = () => {
 
   const handleSubmit = async e => {
-    e.preventDefault()
-    const fd = new FormData(e.target)
-    const body = Object.fromEntries(fd)
-    console.log({ body });
+    try {
+      e.preventDefault()
+      const fd = new FormData(e.target)
+      const body = Object.fromEntries(fd)
+      const { user, token } = await apiReq({ method: 'POST', url: 'login', body })
+      // TODO - setUser - context
+      localStorage.token = token
+    } catch (error) {
+
+    }
   }
 
   return (<div onSubmit={handleSubmit} className='p-6 md:p-12 flex items-center justify-center h-full'>
@@ -69,12 +82,18 @@ const LoginPage = () => {
 }
 
 const RegisterPage = () => {
+  const navigate = useNavigate()
 
   const handleSubmit = async e => {
-    e.preventDefault()
-    const fd = new FormData(e.target)
-    const body = Object.fromEntries(fd)
-    console.log({ body });
+    try {
+      e.preventDefault()
+      const fd = new FormData(e.target)
+      const body = Object.fromEntries(fd)
+      const result = await apiReq({ method: 'POST', body, url: 'register' })
+      navigate('/login')
+    } catch (error) {
+
+    }
   }
 
   return (<div onSubmit={handleSubmit} className='p-6 md:p-12 flex items-center justify-center h-full'>
@@ -86,6 +105,28 @@ const RegisterPage = () => {
       <button className='px-8 py-2 rounded-md bg-orange-500'>send</button>
     </form>
   </div>)
+}
+
+
+async function apiReq({ method, url, body }) {
+  try {
+
+    const { data } = await axios({
+      method,
+      baseURL: 'http://localhost:5000/',
+      url,
+      data: body,
+      headers: {
+        Authorization: localStorage.token || ''
+      }
+    })
+
+    return data
+
+  } catch (error) {
+    console.error({ error });
+    throw error
+  }
 }
 
 export default App
